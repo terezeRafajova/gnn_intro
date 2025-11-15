@@ -78,3 +78,5 @@ class SemiSupervisedEnsemble:
                 summary_dict.update(val_metrics)
                 pbar.set_postfix(summary_dict)
             self.logger.log_dict(summary_dict, step=epoch)
+
+        return summary_dict

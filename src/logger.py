@@ -13,7 +13,7 @@ class WandBLogger:
         name,
         local_dir=".",
         job_type=None,
-        entity="bnns-for-molecules",
+        entity="terezarafajova2-danmarks-tekniske-universitet-dtu",
         project_name="semi-supervised-ensembles",
         disable=False,
     ):

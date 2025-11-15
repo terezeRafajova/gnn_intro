@@ -5,7 +5,7 @@ _target_: logger.WandBLogger
 group: ${dataset.dataset_name} # Name of the group for wandb
 name: ${model.name}_seed=${seed} # Name of the run for wandb
 job_type: test
-entity: bnns-for-molecules
+entity: terezarafajova2-danmarks-tekniske-universitet-dtu
 project_name: semi-supervised-ensembles
 disable: false
 local_dir: ./logs #Directory to save logs

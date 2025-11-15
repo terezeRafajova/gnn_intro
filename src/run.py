@@ -3,6 +3,7 @@ from itertools import chain
 import hydra
 import torch
 from omegaconf import OmegaConf
+import numpy as np
 
 from utils import seed_everything
 
@@ -37,9 +38,26 @@ def main(cfg):
     trainer = hydra.utils.instantiate(cfg.trainer.init, models=models, logger=logger, datamodule=dm, device=device)
 
     results = trainer.train(**cfg.trainer.train)
-    results = torch.Tensor(results)
-
-
+    # trainer.train may return None (it currently does). Only convert to a
+    # tensor when results is present and convertible to avoid TypeError.
+    if results is None:
+        print("trainer.train() returned None — no results to convert")
+    else:
+        # Minimal conversion: if trainer returns a dict/list/scalar of numeric
+        # values (numpy or Python), convert them into a 1-D tensor.
+        try:
+            if isinstance(results, dict):
+                vals = [v.item() if hasattr(v, "item") else v for v in results.values()]
+                results = torch.tensor(vals, dtype=torch.float32)
+            elif isinstance(results, (list, tuple)):
+                vals = [v.item() if hasattr(v, "item") else v for v in results]
+                results = torch.tensor(vals, dtype=torch.float32)
+            elif hasattr(results, "item"):
+                results = torch.tensor(results.item())
+            else:
+                print("trainer.train() returned non-convertible value:", results)
+        except Exception as e:
+            print("Failed converting results to tensor:", e)
 
 if __name__ == "__main__":
     main()
