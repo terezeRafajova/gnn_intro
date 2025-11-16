@@ -6,6 +6,8 @@ method: semi-supervised-ensemble
 train:
   total_epochs: 250
   validation_interval: 10
+  early_stopping_patience: 10
+  early_stopping_min_delta: 0.0
 
 init:
   _target_: trainer.SemiSupervisedEnsemble
@@ -14,7 +16,7 @@ init:
   optimizer:
     _target_: torch.optim.AdamW
     _partial_: true
-    lr: 0.001
+    lr: 0.0005
     weight_decay: 0.005
   scheduler:
     _target_: torch.optim.lr_scheduler.StepLR

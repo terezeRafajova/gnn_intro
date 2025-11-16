@@ -8,3 +8,6 @@ init:
   _partial_: false
   num_node_features: 11
   hidden_channels: 128
+  num_layers: 3
+  dropout: 0.1
+  use_batchnorm: true

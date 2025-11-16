@@ -51,8 +51,16 @@ class SemiSupervisedEnsemble:
         val_loss = np.mean(val_losses)
         return {"val_MSE": val_loss}
 
-    def train(self, total_epochs, validation_interval):
-        #self.logger.log_dict()
+    def train(self, total_epochs, validation_interval, early_stopping_patience=None, early_stopping_min_delta=0.0):
+        """Train loop with optional early stopping.
+
+        early_stopping_patience: number of validation checks with no improvement before stopping.
+        early_stopping_min_delta: minimum decrease in validation metric to count as improvement.
+        """
+        best_val = float("inf")
+        no_improve_count = 0
+        last_summary = None
+
         for epoch in (pbar := tqdm(range(1, total_epochs + 1))):
             for model in self.models:
                 model.train()
@@ -73,10 +81,38 @@ class SemiSupervisedEnsemble:
             summary_dict = {
                 "supervised_loss": supervised_losses_logged,
             }
-            if epoch % validation_interval == 0 or epoch == total_epochs:
+
+            do_validate = (epoch % validation_interval == 0) or (epoch == total_epochs)
+            if do_validate:
                 val_metrics = self.validate()
                 summary_dict.update(val_metrics)
                 pbar.set_postfix(summary_dict)
-            self.logger.log_dict(summary_dict, step=epoch)
 
-        return summary_dict
+                # Early stopping logic uses validation metric named 'val_MSE'
+                try:
+                    val_metric = val_metrics.get("val_MSE")
+                except Exception:
+                    val_metric = None
+
+                if val_metric is not None:
+                    # improvement if val_metric decreased more than min_delta
+                    if val_metric + early_stopping_min_delta < best_val:
+                        best_val = val_metric
+                        no_improve_count = 0
+                    else:
+                        no_improve_count += 1
+
+                    if early_stopping_patience is not None and early_stopping_patience > 0:
+                        if no_improve_count >= early_stopping_patience:
+                            summary_dict["early_stopped"] = True
+                            summary_dict["best_val"] = best_val
+                            summary_dict["stopped_epoch"] = epoch
+                            self.logger.log_dict(summary_dict, step=epoch)
+                            last_summary = summary_dict
+                            pbar.write(f"Early stopping triggered at epoch {epoch} (no_improve_count={no_improve_count}).")
+                            break
+
+            self.logger.log_dict(summary_dict, step=epoch)
+            last_summary = summary_dict
+
+        return last_summary
