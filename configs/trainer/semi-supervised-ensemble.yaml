@@ -19,9 +19,11 @@ init:
     lr: 0.0005
     weight_decay: 0.005
   scheduler:
-    _target_: torch.optim.lr_scheduler.StepLR
+  #  _target_: torch.optim.lr_scheduler.StepLR
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
     _partial_: true
-    step_size: 1
-    gamma: 0.975
+    T_max: 250
+    # step_size: 1
+    # gamma: 0.975
 
     
