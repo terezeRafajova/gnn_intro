@@ -11,6 +11,14 @@ train:
 
 init:
   _target_: trainer.SemiSupervisedEnsemble
+  # Mean-Teacher hyperparameters
+  lambda_mt: 1.0
+  ema_decay: 0.99
+  mt_augment_scale: 0.05
+  # gradient clipping (0 disables)
+  grad_clip_norm: 0.0
+  # whether to normalize targets (train targets mean/std) before computing supervised loss
+  use_target_normalization: true
   supervised_criterion:
     _target_: torch.nn.MSELoss
   optimizer:
@@ -20,10 +28,10 @@ init:
     weight_decay: 0.005
   scheduler:
   #  _target_: torch.optim.lr_scheduler.StepLR
+    # step_size: 1
+    # gamma: 0.975
     _target_: torch.optim.lr_scheduler.CosineAnnealingLR
     _partial_: true
     T_max: 250
-    # step_size: 1
-    # gamma: 0.975
 
     

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, global_mean_pool
+from torch_geometric.nn import GCNConv, global_mean_pool, global_max_pool
 
 
 class GCN(nn.Module):
@@ -44,10 +44,11 @@ class GCN(nn.Module):
         else:
             self.bns = None
 
-        # Simple MLP readout: hidden -> hidden//2 -> 1
+        # Simple MLP readout: (mean+max pooled) -> hidden//2 -> 1
+        # since we concatenate mean and max pool, first Linear expects 2*hidden_channels
         readout_hidden = max(hidden_channels // 2, 16)
         self.readout = nn.Sequential(
-            nn.Linear(hidden_channels, readout_hidden),
+            nn.Linear(2 * hidden_channels, readout_hidden),
             nn.ReLU(inplace=True),
             nn.Dropout(self.dropout),
             nn.Linear(readout_hidden, 1),
@@ -59,16 +60,19 @@ class GCN(nn.Module):
         # Node embedding through stacked GCN layers
         for i, conv in enumerate(self.convs):
             x = conv(x, edge_index)
-            x = F.relu(x)
+            # Apply BatchNorm before the non-linearity (conv -> BN -> ReLU)
             if self.bns is not None:
                 # BatchNorm1d expects shape [batch_size, features]; node dim works
                 x = self.bns[i](x)
+            x = F.relu(x)
             if self.dropout > 0:
                 x = F.dropout(x, p=self.dropout, training=self.training)
 
-        # Readout
-        x = global_mean_pool(x, batch)
+        # Readout: concatenate mean and max pooled node features per graph
+        mean_pool = global_mean_pool(x, batch)
+        max_pool = global_max_pool(x, batch)
+        x = torch.cat([mean_pool, max_pool], dim=1)  # shape [batch_size, 2*hidden_channels]
 
-        # MLP head
+        # MLP head -> returns shape [batch_size, 1]
         out = self.readout(x)
         return out

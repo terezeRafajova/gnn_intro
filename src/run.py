@@ -59,5 +59,22 @@ def main(cfg):
         except Exception as e:
             print("Failed converting results to tensor:", e)
 
+        # After training, run test on held-out set if trainer provides it
+        try:
+            if hasattr(trainer, "test"):
+                test_results = trainer.test()
+                print("Test results:", test_results)
+                # convert to tensor if possible
+                try:
+                    if isinstance(test_results, dict):
+                        vals = [v.item() if hasattr(v, "item") else v for v in test_results.values()]
+                        test_tensor = torch.tensor(vals, dtype=torch.float32)
+                        print("Test results tensor:", test_tensor)
+                except Exception:
+                    pass
+        except Exception as e:
+            print("Error while running trainer.test():", e)
+
+
 if __name__ == "__main__":
     main()
