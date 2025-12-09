@@ -1,0 +1,36 @@
+# Requirements for gnn_intro
+# Tested with Python 3.10+ and PyTorch 2.x. Adjust versions for your environment.
+
+# Core ML / numerical packages
+torch>=2.1.0
+torchvision>=0.16.0
+torchaudio>=2.1.0
+numpy>=1.25
+
+# PyTorch Geometric (PyG)
+# NOTE: PyG and its backend libraries (torch-scatter, torch-sparse, torch-cluster, torch-spline-conv)
+# often require platform/CUDA-specific wheels. See instructions below before installing.
+torch-geometric>=2.3.0
+
+# Utilities
+tqdm>=4.65
+hydra-core>=1.3
+omegaconf>=2.3
+PyYAML>=6.0
+wandb>=0.15
+
+# Installation notes (example steps)
+# 1) Install a compatible PyTorch wheel for your platform first. Example (CPU-only):
+#    pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+# 2) Install PyG backend wheels matching your PyTorch build. See the official guide:
+#    https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html
+#    Example CPU wheel installs (replace torch version tag as appropriate):
+#    pip install torch-scatter -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
+#    pip install torch-sparse -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
+#    pip install torch-cluster -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
+#    pip install torch-spline-conv -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
+# 3) Finally install torch-geometric:
+#    pip install torch-geometric
+
+# If you plan to run on CUDA, select the correct CUDA/PyTorch wheel URLs from the PyG documentation
+# and the official PyTorch download page. On many servers it's easiest to follow the two pages above.
